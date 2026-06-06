@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Contrast, Palette, Eye, FileText, Image } from 'lucide-react';
+import { Contrast, Palette, Eye, FileText, Image, Scan } from 'lucide-react';
 import { useState } from 'react';
 
 interface NavItem {
@@ -13,6 +13,7 @@ const navItems: NavItem[] = [
   { path: '/palette', label: '调色板批量', icon: <Palette size={20} /> },
   { path: '/simulate', label: '色盲模拟', icon: <Eye size={20} /> },
   { path: '/sampler', label: '图片取样', icon: <Image size={20} /> },
+  { path: '/scan', label: '页面扫描', icon: <Scan size={20} /> },
   { path: '/report', label: '报告导出', icon: <FileText size={20} /> },
 ];
 

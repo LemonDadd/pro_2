@@ -4,6 +4,7 @@ import ContrastChecker from '@/pages/ContrastChecker';
 import PaletteAudit from '@/pages/PaletteAudit';
 import ColorblindSimulate from '@/pages/ColorblindSimulate';
 import ImageSampler from '@/pages/ImageSampler';
+import PageScan from '@/pages/PageScan';
 import ReportPage from '@/pages/ReportPage';
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/palette" element={<PaletteAudit />} />
           <Route path="/simulate" element={<ColorblindSimulate />} />
           <Route path="/sampler" element={<ImageSampler />} />
+          <Route path="/scan" element={<PageScan />} />
           <Route path="/report" element={<ReportPage />} />
         </Routes>
       </Layout>
