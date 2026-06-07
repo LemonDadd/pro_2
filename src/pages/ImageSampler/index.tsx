@@ -103,6 +103,14 @@ export default function ImageSampler() {
 
   return (
     <div className="space-y-6">
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        onChange={handleImageUpload}
+        className="hidden"
+      />
+
       <div>
         <h1 className="text-2xl font-bold text-zinc-900">图片取样</h1>
         <p className="text-zinc-500 mt-1">
@@ -119,21 +127,12 @@ export default function ImageSampler() {
           <Upload size={40} className="mx-auto text-zinc-400 mb-4" />
           <p className="text-zinc-700 font-medium mb-1">上传图片</p>
           <p className="text-sm text-zinc-500 mb-4">拖拽图片到此处或点击上传</p>
-          <label className="relative inline-block">
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
-            >
-              选择图片
-            </button>
-          </label>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
+          >
+            选择图片
+          </button>
           <p className="text-xs text-zinc-400 mt-3">支持 PNG、JPG 格式</p>
         </div>
       ) : (
@@ -142,20 +141,12 @@ export default function ImageSampler() {
             <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               <div className="p-3 border-b border-zinc-100 flex items-center justify-between">
                 <span className="text-sm font-medium text-zinc-700">图片预览</span>
-                <label className="relative">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-xs text-zinc-500 hover:text-zinc-700"
-                  >
-                    更换图片
-                  </button>
-                </label>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-xs text-zinc-500 hover:text-zinc-700"
+                >
+                  更换图片
+                </button>
               </div>
               <div
                 className={`p-4 bg-zinc-100 overflow-auto ${

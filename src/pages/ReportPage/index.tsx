@@ -9,10 +9,14 @@ import AllItemsTab from './AllItemsTab';
 type TabKey = 'overview' | 'failures' | 'all';
 
 export default function ReportPage() {
-  const { getFullReport, palettePairs, scannedItems, currentFg, currentBg } = useAuditStore();
+  const { getFullReport, palettePairs, scannedItems, contrastItem, samplerItem, currentFg, currentBg } = useAuditStore();
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
-  const report = useMemo(() => getFullReport(), [getFullReport]);
+  const report = useMemo(
+    () => getFullReport(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [getFullReport, palettePairs, scannedItems, contrastItem, samplerItem, currentFg, currentBg]
+  );
   const markdown = useMemo(() => generateMarkdownReport(report), [report]);
 
   const failItems = report.items.filter(item => !item.passAA);
