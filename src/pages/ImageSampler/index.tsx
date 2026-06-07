@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { Upload, MousePointer2, Pipette } from 'lucide-react';
+import { Upload, MousePointer2, Pipette, Plus, Check } from 'lucide-react';
 import { rgbToHex, getContrastResult } from '@/utils/color';
 import ContrastBadges from '@/components/ContrastBadge/ContrastBadges';
 import { suggestBetterPair } from '@/utils/suggest';
+import { useAuditStore } from '@/store/auditStore';
+import type { ReportItem } from '@/types';
 
 type PickMode = 'fg' | 'bg' | null;
 
 export default function ImageSampler() {
+  const { samplerItem, setSamplerItem } = useAuditStore();
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [fgColor, setFgColor] = useState('#1F2937');
   const [bgColor, setBgColor] = useState('#FFFFFF');
@@ -17,6 +20,27 @@ export default function ImageSampler() {
 
   const contrastResult = getContrastResult(fgColor, bgColor);
   const suggestion = !contrastResult.passAANormal ? suggestBetterPair(fgColor, bgColor, 4.5) : null;
+  const isInReport = !!samplerItem && samplerItem.fg === fgColor && samplerItem.bg === bgColor;
+
+  const handleAddToReport = () => {
+    if (isInReport) {
+      setSamplerItem(null);
+    } else {
+      const item: ReportItem = {
+        source: '图片取样',
+        role: '取样前景 / 背景',
+        fg: fgColor,
+        bg: bgColor,
+        ratio: contrastResult.ratio,
+        passAA: contrastResult.passAANormal,
+        passAAA: contrastResult.passAAANormal,
+        suggestedFg: suggestion?.suggestedFg,
+        suggestedBg: suggestion?.suggestedBg,
+        suggestedRatio: suggestion?.suggestedRatio,
+      };
+      setSamplerItem(item);
+    }
+  };
 
   useEffect(() => {
     if (imageSrc && canvasRef.current) {
@@ -232,6 +256,17 @@ export default function ImageSampler() {
                 </span>
               </div>
               <ContrastBadges result={contrastResult} />
+              <button
+                onClick={handleAddToReport}
+                className={`mt-4 w-full flex items-center justify-center gap-1.5 px-3 py-2 text-sm rounded-lg transition-colors ${
+                  isInReport
+                    ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                    : 'bg-amber-500 text-white hover:bg-amber-600'
+                }`}
+              >
+                {isInReport ? <Check size={14} /> : <Plus size={14} />}
+                {isInReport ? '已加入报告' : '加入报告'}
+              </button>
             </div>
 
             {suggestion && (

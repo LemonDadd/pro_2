@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowDownUp, Sparkles } from 'lucide-react';
+import { ArrowDownUp, Sparkles, Plus, Check } from 'lucide-react';
 import ColorInput from '@/components/ColorInput/ColorInput';
 import ContrastBadges from '@/components/ContrastBadge/ContrastBadges';
 import { getContrastResult, getColorInfo } from '@/utils/color';
@@ -7,7 +7,7 @@ import { suggestBetterPair } from '@/utils/suggest';
 import { useAuditStore } from '@/store/auditStore';
 
 export default function ContrastChecker() {
-  const { currentFg, currentBg, setCurrentColors } = useAuditStore();
+  const { currentFg, currentBg, setCurrentColors, addContrastToReport, removeContrastFromReport, contrastItem } = useAuditStore();
   const [fg, setFg] = useState(currentFg);
   const [bg, setBg] = useState(currentBg);
   const [suggestedFg, setSuggestedFg] = useState<string | undefined>();
@@ -17,6 +17,7 @@ export default function ContrastChecker() {
   const contrastResult = getContrastResult(fg, bg);
   const fgInfo = getColorInfo(fg);
   const bgInfo = getColorInfo(bg);
+  const isInReport = !!contrastItem && contrastItem.fg === fg && contrastItem.bg === bg;
 
   useEffect(() => {
     setCurrentColors(fg, bg);
@@ -86,9 +87,20 @@ export default function ContrastChecker() {
               <span className="text-2xl text-zinc-400">: 1</span>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-zinc-500 mb-2">WCAG 2.1 标准</p>
+          <div className="flex flex-col items-end gap-2">
+            <button
+              onClick={() => isInReport ? removeContrastFromReport() : addContrastToReport(fg, bg)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                isInReport
+                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                  : 'bg-amber-500 text-white hover:bg-amber-600'
+              }`}
+            >
+              {isInReport ? <Check size={14} /> : <Plus size={14} />}
+              {isInReport ? '已加入报告' : '加入报告'}
+            </button>
             <div className="w-56">
+              <p className="text-sm text-zinc-500 mb-2 text-right">WCAG 2.1 标准</p>
               <ContrastBadges result={contrastResult} />
             </div>
           </div>

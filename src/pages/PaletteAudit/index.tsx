@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
-import { Upload, FileJson, CheckCircle, XCircle, RefreshCw, Sparkles, TrendingUp } from 'lucide-react';
-import { parseDesignTokens, generateTokenPairs, generateSuggestions, sampleTokens } from '@/utils/tokens';
-import type { TokenPair } from '@/types';
+import { Upload, FileJson, CheckCircle, XCircle, RefreshCw, Sparkles, TrendingUp, Download } from 'lucide-react';
+import { parseDesignTokens, generateTokenPairs, generateSuggestions, sampleTokens, buildFixedTokens, downloadTokens } from '@/utils/tokens';
+import type { TokenPair, DesignTokens } from '@/types';
 import { useAuditStore } from '@/store/auditStore';
 
 export default function PaletteAudit() {
   const { setPalettePairs } = useAuditStore();
   const [jsonText, setJsonText] = useState(sampleTokens);
-  const [pairs, setPairs] = useState<TokenPair[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [originalTokens, setOriginalTokens] = useState<DesignTokens | null>(null);
   const [withSuggestions, setWithSuggestions] = useState<TokenPair[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -26,22 +26,28 @@ export default function PaletteAudit() {
     const tokens = parseDesignTokens(jsonText);
     if (!tokens) {
       setError('JSON 格式无效，请检查输入');
-      setPairs([]);
+      setOriginalTokens(null);
       setWithSuggestions([]);
       return;
     }
 
     if (Object.keys(tokens.colors).length === 0) {
       setError('未找到有效的颜色定义');
-      setPairs([]);
+      setOriginalTokens(null);
       setWithSuggestions([]);
       return;
     }
 
+    setOriginalTokens(tokens);
     const tokenPairs = generateTokenPairs(tokens);
-    setPairs(tokenPairs);
     const withSug = generateSuggestions(tokenPairs, 4.5);
     setWithSuggestions(withSug);
+  };
+
+  const handleExportFixed = () => {
+    if (!originalTokens) return;
+    const fixed = buildFixedTokens(originalTokens, withSuggestions);
+    downloadTokens(fixed, 'design-tokens-fixed.json');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,17 +79,31 @@ export default function PaletteAudit() {
     e.preventDefault();
   };
 
-  const total = pairs.length;
-  const passAACount = pairs.filter(p => p.passAA).length;
-  const passAAACount = pairs.filter(p => p.passAAA).length;
+  const total = withSuggestions.length;
+  const passAACount = withSuggestions.filter(p => p.passAA).length;
+  const passAAACount = withSuggestions.filter(p => p.passAAA).length;
 
   const applySuggestion = (pair: TokenPair) => {
     if (!pair.suggestedFg && !pair.suggestedBg) return;
     const newFg = pair.suggestedFg || pair.fg;
     const newBg = pair.suggestedBg || pair.bg;
-    setPairs(prev => prev.map(p => 
-      p.role === pair.role ? { ...p, fg: newFg, bg: newBg, ratio: pair.suggestedRatio || p.ratio, passAA: true } : p
-    ));
+    const newRatio = pair.suggestedRatio || pair.ratio;
+
+    setWithSuggestions(prev => prev.map(p => {
+      if (p.role !== pair.role) return p;
+      const updated = {
+        ...p,
+        fg: newFg,
+        bg: newBg,
+        ratio: newRatio,
+        passAA: true,
+        passAAA: newRatio >= 7,
+        suggestedFg: undefined,
+        suggestedBg: undefined,
+        suggestedRatio: undefined,
+      };
+      return updated;
+    }));
   };
 
   return (
@@ -178,17 +198,27 @@ export default function PaletteAudit() {
             <span className="font-medium text-zinc-700">
               检查结果
             </span>
-            <button
-              onClick={() => setShowSuggestions(!showSuggestions)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                showSuggestions
-                  ? 'bg-amber-100 text-amber-700'
-                  : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
-              }`}
-            >
-              <Sparkles size={14} />
-              {showSuggestions ? '隐藏建议' : '显示建议'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleExportFixed}
+                disabled={!originalTokens}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download size={14} />
+                导出修正版
+              </button>
+              <button
+                onClick={() => setShowSuggestions(!showSuggestions)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  showSuggestions
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                }`}
+              >
+                <Sparkles size={14} />
+                {showSuggestions ? '隐藏建议' : '显示建议'}
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">

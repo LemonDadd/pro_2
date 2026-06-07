@@ -28,6 +28,8 @@ export interface ContrastResult {
 export interface TokenPair {
   fg: string;
   bg: string;
+  fgKey?: string;
+  bgKey?: string;
   role: string;
   ratio: number;
   passAA: boolean;
