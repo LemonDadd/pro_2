@@ -3,8 +3,8 @@ import { Upload, MousePointer2, Pipette, Plus, Check } from 'lucide-react';
 import { rgbToHex, getContrastResult } from '@/utils/color';
 import ContrastBadges from '@/components/ContrastBadge/ContrastBadges';
 import { suggestBetterPair } from '@/utils/suggest';
+import { buildReportItem } from '@/utils/report';
 import { useAuditStore } from '@/store/auditStore';
-import type { ReportItem } from '@/types';
 
 type PickMode = 'fg' | 'bg' | null;
 
@@ -26,18 +26,7 @@ export default function ImageSampler() {
     if (isInReport) {
       setSamplerItem(null);
     } else {
-      const item: ReportItem = {
-        source: '图片取样',
-        role: '取样前景 / 背景',
-        fg: fgColor,
-        bg: bgColor,
-        ratio: contrastResult.ratio,
-        passAA: contrastResult.passAANormal,
-        passAAA: contrastResult.passAAANormal,
-        suggestedFg: suggestion?.suggestedFg,
-        suggestedBg: suggestion?.suggestedBg,
-        suggestedRatio: suggestion?.suggestedRatio,
-      };
+      const item = buildReportItem('图片取样', '取样前景 / 背景', fgColor, bgColor);
       setSamplerItem(item);
     }
   };

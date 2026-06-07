@@ -1,51 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { ArrowDownUp, Sparkles, Plus, Check } from 'lucide-react';
 import ColorInput from '@/components/ColorInput/ColorInput';
 import ContrastBadges from '@/components/ContrastBadge/ContrastBadges';
-import { getContrastResult, getColorInfo } from '@/utils/color';
-import { suggestBetterPair } from '@/utils/suggest';
+import { useContrastPair } from '@/hooks/useContrastPair';
 import { useAuditStore } from '@/store/auditStore';
 
 export default function ContrastChecker() {
   const { currentFg, currentBg, setCurrentColors, addContrastToReport, removeContrastFromReport, contrastItem } = useAuditStore();
-  const [fg, setFg] = useState(currentFg);
-  const [bg, setBg] = useState(currentBg);
-  const [suggestedFg, setSuggestedFg] = useState<string | undefined>();
-  const [suggestedBg, setSuggestedBg] = useState<string | undefined>();
-  const [suggestedRatio, setSuggestedRatio] = useState<number | undefined>();
+  const {
+    fg,
+    bg,
+    setFg,
+    setBg,
+    swap,
+    contrastResult,
+    fgInfo,
+    bgInfo,
+    suggestedFg,
+    suggestedBg,
+    suggestedRatio,
+    hasSuggestion,
+    applySuggestion,
+  } = useContrastPair({ initialFg: currentFg, initialBg: currentBg });
 
-  const contrastResult = getContrastResult(fg, bg);
-  const fgInfo = getColorInfo(fg);
-  const bgInfo = getColorInfo(bg);
   const isInReport = !!contrastItem && contrastItem.fg === fg && contrastItem.bg === bg;
 
   useEffect(() => {
     setCurrentColors(fg, bg);
   }, [fg, bg, setCurrentColors]);
 
-  useEffect(() => {
-    if (!contrastResult.passAANormal) {
-      const suggestion = suggestBetterPair(fg, bg, 4.5);
-      if (suggestion) {
-        setSuggestedFg(suggestion.suggestedFg);
-        setSuggestedBg(suggestion.suggestedBg);
-        setSuggestedRatio(suggestion.suggestedRatio);
-      }
+  const handleToggleReport = () => {
+    if (isInReport) {
+      removeContrastFromReport();
     } else {
-      setSuggestedFg(undefined);
-      setSuggestedBg(undefined);
-      setSuggestedRatio(undefined);
+      addContrastToReport(fg, bg);
     }
-  }, [fg, bg, contrastResult.passAANormal]);
-
-  const handleSwap = () => {
-    setFg(bg);
-    setBg(fg);
-  };
-
-  const applySuggestion = () => {
-    if (suggestedFg) setFg(suggestedFg);
-    if (suggestedBg) setBg(suggestedBg);
   };
 
   return (
@@ -64,7 +53,7 @@ export default function ContrastChecker() {
 
       <div className="flex justify-center">
         <button
-          onClick={handleSwap}
+          onClick={swap}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-600 hover:bg-zinc-50 transition-colors text-sm"
         >
           <ArrowDownUp size={16} />
@@ -89,7 +78,7 @@ export default function ContrastChecker() {
           </div>
           <div className="flex flex-col items-end gap-2">
             <button
-              onClick={() => isInReport ? removeContrastFromReport() : addContrastToReport(fg, bg)}
+              onClick={handleToggleReport}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
                 isInReport
                   ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
@@ -106,7 +95,7 @@ export default function ContrastChecker() {
           </div>
         </div>
 
-        {!contrastResult.passAANormal && (suggestedFg || suggestedBg) && (
+        {hasSuggestion && (
           <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">

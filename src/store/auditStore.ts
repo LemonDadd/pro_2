@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import type { ReportItem, AuditReport, TokenPair } from '@/types';
-import { buildAuditReport, tokenPairsToReportItems } from '@/utils/report';
-import { getContrastResult } from '@/utils/color';
-import { suggestBetterPair } from '@/utils/suggest';
+import { buildAuditReport, tokenPairsToReportItems, buildReportItem } from '@/utils/report';
 
 interface AuditState {
   currentFg: string;
@@ -43,21 +41,8 @@ export const useAuditStore = create<AuditState>((set, get) => ({
   clearScannedItems: () => set({ scannedItems: [] }),
 
   addContrastToReport: (fg, bg) => {
-    const contrast = getContrastResult(fg, bg);
-    const suggestion = suggestBetterPair(fg, bg, 4.5);
     set({
-      contrastItem: {
-        source: '双色检查',
-        role: '当前前景 / 背景',
-        fg,
-        bg,
-        ratio: contrast.ratio,
-        passAA: contrast.passAANormal,
-        passAAA: contrast.passAAANormal,
-        suggestedFg: suggestion?.suggestedFg,
-        suggestedBg: suggestion?.suggestedBg,
-        suggestedRatio: suggestion?.suggestedRatio,
-      },
+      contrastItem: buildReportItem('双色检查', '当前前景 / 背景', fg, bg),
     });
   },
 
@@ -93,16 +78,7 @@ export const useAuditStore = create<AuditState>((set, get) => ({
     }
 
     if (allItems.length === 0) {
-      const contrast = getContrastResult(state.currentFg, state.currentBg);
-      allItems.push({
-        source: '双色检查',
-        role: '当前前景 / 背景',
-        fg: state.currentFg,
-        bg: state.currentBg,
-        ratio: contrast.ratio,
-        passAA: contrast.passAANormal,
-        passAAA: contrast.passAAANormal,
-      });
+      allItems.push(buildReportItem('双色检查', '当前前景 / 背景', state.currentFg, state.currentBg));
     }
 
     return buildAuditReport(allItems);

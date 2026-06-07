@@ -1,4 +1,29 @@
 import type { ReportItem, AuditReport, TokenPair } from '@/types';
+import { getContrastResult } from './color';
+import { suggestBetterPair } from './suggest';
+
+export function buildReportItem(
+  source: string,
+  role: string,
+  fg: string,
+  bg: string,
+  targetRatio: number = 4.5
+): ReportItem {
+  const contrast = getContrastResult(fg, bg);
+  const suggestion = suggestBetterPair(fg, bg, targetRatio);
+  return {
+    source,
+    role,
+    fg,
+    bg,
+    ratio: contrast.ratio,
+    passAA: contrast.passAANormal,
+    passAAA: contrast.passAAANormal,
+    suggestedFg: suggestion?.suggestedFg,
+    suggestedBg: suggestion?.suggestedBg,
+    suggestedRatio: suggestion?.suggestedRatio,
+  };
+}
 
 export function generateMarkdownReport(report: AuditReport): string {
   const lines: string[] = [];
